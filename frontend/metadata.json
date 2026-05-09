@@ -1,0 +1,7 @@
+{
+  "name": "BundaCare",
+  "description": "A smart pregnancy companion app with AI support, fetal growth tracking, and health reminders.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
