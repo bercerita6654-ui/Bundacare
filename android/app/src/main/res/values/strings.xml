@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">BundaCare</string>
+    <string name="title_dashboard">Home</string>
+    <string name="title_tips">Tips</string>
+    <string name="title_kicks">Gerak</string>
+    <string name="title_checkup">Check-up</string>
+</resources>
