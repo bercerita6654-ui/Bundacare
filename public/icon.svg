@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e" />
+      <stop offset="50%" stop-color="#ec4899" />
+      <stop offset="100%" stop-color="#d946ef" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.05" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#be185d" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle for Android -->
+  <rect width="512" height="512" rx="128" fill="url(#bg)" />
+  
+  <!-- Subtle inner shine -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#glow)" />
+
+  <!-- Heart / Mother Silhouette -->
+  <g transform="translate(256, 250) scale(1.15)" filter="url(#shadow)">
+    <!-- Stylized Heart Base -->
+    <path d="M 0,110 C -120,30 -160,-60 -80,-110 C -20,-140 0,-70 0,-70 C 0,-70 20,-140 80,-110 C 160,-60 120,30 0,110 Z" fill="#ffffff" />
+    <!-- Baby womb spark / heart center -->
+    <circle cx="-15" cy="-5" r="32" fill="#f43f5e" opacity="0.85" />
+    <path d="M -15,-25 C -5,-35 15,-20 10,-5 C 5,10 -15,22 -15,22 C -15,22 -35,10 -40,-5 C -45,-20 -25,-35 -15,-25 Z" fill="#ffffff" opacity="0.95" />
+    <!-- Golden Care Star -->
+    <path d="M 60,-80 L 66,-66 L 80,-60 L 66,-54 L 60,-40 L 54,-54 L 40,-60 L 54,-66 Z" fill="#fef08a" />
+  </g>
+</svg>

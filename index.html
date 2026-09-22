@@ -2,8 +2,22 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BundaCare - Pendamping Kehamilan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BundaCare - Aplikasi Android Pemantau Kehamilan</title>
+    <meta name="description" content="Aplikasi asisten dan pemantau kehamilan cerdas dengan estimasi kehamilan akurat, panduan trimester, dan jadwal kesehatan.">
+    
+    <!-- Android PWA & Native Mobile Web Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ec4899">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BundaCare">
+    <meta name="application-name" content="BundaCare">
+    <meta name="msapplication-TileColor" content="#ec4899">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script type="module" src="/src/geminiClient.ts"></script>
@@ -56,6 +70,71 @@
             /* Mencegah highlight biru saat di-tap di HP */
             -webkit-tap-highlight-color: transparent; 
             min-height: 100vh;
+        }
+
+        /* --- ANDROID SPECIFIC STYLES --- */
+        .android-status-bar {
+            font-family: -apple-system, BlinkMacSystemFont, "Roboto", "Segoe UI", sans-serif;
+            letter-spacing: -0.01em;
+            user-select: none;
+        }
+
+        .android-gesture-bar {
+            width: 128px;
+            height: 4.5px;
+            background-color: rgba(148, 163, 184, 0.6);
+            border-radius: 9999px;
+            margin: 6px auto 2px auto;
+            transition: all 0.25s ease;
+        }
+        .android-gesture-bar:hover {
+            background-color: rgba(100, 116, 139, 0.95);
+            width: 140px;
+        }
+
+        .android-ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .android-ripple:active::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(236,72,153,0.3) 10%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Android Phone Frame for Desktop / Large Screens */
+        .android-phone-frame {
+            transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-radius 0.3s ease;
+        }
+        
+        .android-mode-device {
+            max-width: 440px !important;
+            margin: 20px auto !important;
+            border-radius: 46px !important;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 0 10px #1e293b, 0 0 0 12px #334155 !important;
+            overflow: hidden !important;
+            position: relative;
+            background: radial-gradient(circle at 0% 0%, rgb(var(--theme-50)) 0%, rgb(var(--theme-100)) 50%, rgb(var(--theme-200)) 100%);
+        }
+
+        .android-mode-device .android-punch-hole {
+            display: block;
+        }
+
+        .android-punch-hole {
+            display: none;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 13px;
+            height: 13px;
+            background-color: #090d16;
+            border-radius: 50%;
+            z-index: 70;
+            box-shadow: inset 0 0 2px rgba(255,255,255,0.25), 0 0 1px rgba(0,0,0,0.8);
         }
 
         /* Animasi Transisi Tab */
@@ -212,6 +291,63 @@
     </div>
 
     <div id="app-wrapper" class="hidden">
+    <!-- Android Smartphone Container Frame -->
+    <div id="android-phone-frame" class="android-phone-frame android-mode-device min-h-screen flex flex-col justify-between">
+        <!-- Punch Hole Camera (Visible in phone mockup) -->
+        <div class="android-punch-hole"></div>
+
+        <!-- Android System Top Status Bar -->
+        <div class="android-status-bar bg-slate-900/10 backdrop-blur-md px-5 py-2 flex items-center justify-between text-[11px] font-semibold text-slate-800 border-b border-white/20 select-none z-50">
+            <!-- Clock & Android Tag -->
+            <div class="flex items-center gap-1.5">
+                <span id="android-status-clock" class="font-bold tracking-tight text-slate-800">12:45</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 text-[9px] font-bold bg-emerald-100 text-emerald-800 rounded-md border border-emerald-200">
+                    <i class="fab fa-android mr-1 text-emerald-600"></i> Android
+                </span>
+            </div>
+            
+            <!-- Frame Mode Toggle + Status Icons (5G, Wi-Fi, Battery) -->
+            <div class="flex items-center gap-2 text-slate-700">
+                <button onclick="toggleAndroidFrameMode()" class="text-[9px] px-2 py-0.5 bg-white/70 hover:bg-white rounded-md text-pink-700 font-bold hidden sm:inline-flex items-center gap-1 shadow-2xs border border-white transition active:scale-95" id="btn-toggle-frame" title="Ganti Mode Tampilan (HP / Layar Penuh)">
+                    <i class="fas fa-mobile-alt"></i> <span id="text-frame-mode" data-i18n="androidModeToggleFull">Layar Penuh</span>
+                </button>
+                <i class="fas fa-signal text-[10px]" title="Sinyal 5G"></i>
+                <i class="fas fa-wifi text-[10px]" title="Wi-Fi"></i>
+                <div class="flex items-center gap-1 font-mono text-[10px]">
+                    <span id="android-battery-level">98%</span>
+                    <i class="fas fa-battery-three-quarters text-xs text-slate-800" id="android-battery-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Android In-App Install Prompt Banner -->
+        <div id="android-install-banner" class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white px-4 py-2.5 shadow-md flex items-center justify-between gap-3 text-xs z-40 transition-all">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 text-white text-base shadow-xs">
+                    <i class="fab fa-android"></i>
+                </div>
+                <div class="truncate">
+                    <p class="font-bold leading-tight" data-i18n="androidInstallTitle">Pasang Aplikasi Android</p>
+                    <p class="text-[10px] text-emerald-100 truncate" data-i18n="androidInstallSubtitle">Akses cepat di layar HP, hemat kuota & aktif offline</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button onclick="installAndroidApp()" class="px-3 py-1 bg-white text-emerald-700 font-bold rounded-lg text-xs hover:bg-emerald-50 active:scale-95 transition shadow-sm flex items-center gap-1">
+                    <i class="fas fa-download text-[10px]"></i> <span data-i18n="androidInstallBtn">Pasang</span>
+                </button>
+                <button onclick="dismissAndroidBanner()" class="w-6 h-6 rounded-full hover:bg-white/20 text-emerald-200 flex items-center justify-center text-xs transition" title="Tutup">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Android Offline Toast Notification Banner -->
+        <div id="android-offline-banner" class="hidden bg-amber-500 text-white px-4 py-2 text-center text-xs font-bold shadow-md items-center justify-center gap-2 z-40">
+            <i class="fas fa-wifi-slash animate-pulse"></i>
+            <span data-i18n="androidOfflineBanner">Mode Offline Android Aktif — BundaCare tetap berfungsi dengan data lokal.</span>
+        </div>
+
+    <div>
     <!-- Header -->
     <header class="bg-white/30 backdrop-blur-md border-b border-white/40 p-4 sm:p-6 rounded-b-[40px] shadow-sm sticky top-0 z-50">
         <div class="flex justify-between items-center max-w-md mx-auto relative">
@@ -230,6 +366,10 @@
                 </div>
             </div>
             <div class="flex justify-end items-center gap-1.5 sm:gap-2">
+                <!-- Android App Center Action Button -->
+                <button onclick="openAndroidModal()" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-white shadow-sm bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center transition active:scale-95 backdrop-blur-md shrink-0" title="Aplikasi Android BundaCare" data-i18n-title="androidAppBadge">
+                    <i class="fab fa-android text-sm sm:text-base"></i>
+                </button>
                 <div id="header-user-profile" class="hidden relative">
                    <div onclick="toggleProfileMenu()" class="cursor-pointer flex items-center gap-2 bg-white/50 rounded-full shadow-sm border border-white hover:bg-white transition pr-2">
                        <img id="user-avatar" src="" alt="User" class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover shrink-0" />
@@ -1059,28 +1199,134 @@
     </main>
 
     <!-- Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/40 backdrop-blur-xl border-t border-white/50 px-4 sm:px-6 py-3 flex justify-between items-center z-50 rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] max-w-md mx-auto">
-        <button onclick="switchTab('dashboard')" class="nav-btn p-2 flex flex-col items-center text-pink-600 transition-colors" id="nav-dashboard">
-            <i class="fas fa-home text-xl sm:text-lg mb-1"></i>
-            <span class="text-[10px] sm:text-[9px] font-bold" data-i18n="navHome">Home</span>
-        </button>
-        <button onclick="switchTab('tips')" class="nav-btn p-2 flex flex-col items-center text-gray-400 hover:text-pink-400 transition-colors" id="nav-tips">
-            <i class="fas fa-book-open text-xl sm:text-lg mb-1"></i>
-            <span class="text-[10px] sm:text-[9px] font-bold" data-i18n="navTips">Tips</span>
-        </button>
-        <button onclick="switchTab('kicks')" class="nav-btn p-2 flex flex-col items-center text-gray-400 hover:text-pink-400 transition-colors" id="nav-kicks">
-            <i class="fas fa-heartbeat text-xl sm:text-lg mb-1"></i>
-            <span class="text-[10px] sm:text-[9px] font-bold" data-i18n="navKicks">Gerak</span>
-        </button>
-        <button onclick="switchTab('checkup')" class="nav-btn p-2 flex flex-col items-center text-gray-400 hover:text-pink-400 transition-colors" id="nav-checkup">
-            <i class="fas fa-stethoscope text-xl sm:text-lg mb-1"></i>
-            <span class="text-[10px] sm:text-[9px] font-bold" data-i18n="navCheckup">Check-up</span>
-        </button>
-        <button onclick="switchTab('usg')" class="nav-btn p-2 flex flex-col items-center text-gray-400 hover:text-pink-400 transition-colors" id="nav-usg">
-            <i class="fas fa-images text-xl sm:text-lg mb-1"></i>
-            <span class="text-[10px] sm:text-[9px] font-bold" data-i18n="navUsg">USG</span>
-        </button>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/50 backdrop-blur-xl border-t border-white/60 px-3 sm:px-5 pt-2 pb-1.5 flex flex-col items-center z-50 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.06)] max-w-md mx-auto">
+        <div class="flex justify-between items-center w-full">
+            <button onclick="androidHaptic('light'); switchTab('dashboard')" class="nav-btn android-ripple px-3 py-1 rounded-2xl flex flex-col items-center text-pink-600 transition-all active:scale-95" id="nav-dashboard">
+                <i class="fas fa-home text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold" data-i18n="navHome">Home</span>
+            </button>
+            <button onclick="androidHaptic('light'); switchTab('tips')" class="nav-btn android-ripple px-3 py-1 rounded-2xl flex flex-col items-center text-gray-400 hover:text-pink-400 transition-all active:scale-95" id="nav-tips">
+                <i class="fas fa-book-open text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold" data-i18n="navTips">Tips</span>
+            </button>
+            <button onclick="androidHaptic('light'); switchTab('kicks')" class="nav-btn android-ripple px-3 py-1 rounded-2xl flex flex-col items-center text-gray-400 hover:text-pink-400 transition-all active:scale-95" id="nav-kicks">
+                <i class="fas fa-heartbeat text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold" data-i18n="navKicks">Gerak</span>
+            </button>
+            <button onclick="androidHaptic('light'); switchTab('checkup')" class="nav-btn android-ripple px-3 py-1 rounded-2xl flex flex-col items-center text-gray-400 hover:text-pink-400 transition-all active:scale-95" id="nav-checkup">
+                <i class="fas fa-stethoscope text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold" data-i18n="navCheckup">Check-up</span>
+            </button>
+            <button onclick="androidHaptic('light'); switchTab('usg')" class="nav-btn android-ripple px-3 py-1 rounded-2xl flex flex-col items-center text-gray-400 hover:text-pink-400 transition-all active:scale-95" id="nav-usg">
+                <i class="fas fa-images text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold" data-i18n="navUsg">USG</span>
+            </button>
+        </div>
+        <!-- Android System Gesture Navigation Bar -->
+        <div class="android-gesture-bar cursor-pointer" onclick="androidHaptic('light')" title="Android Gesture Bar"></div>
     </nav>
+    </div> <!-- Close #android-phone-frame -->
+    </div> <!-- Close #app-wrapper -->
+
+    <!-- Android App Center Modal -->
+    <div id="android-app-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[75] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white/95 backdrop-blur-2xl rounded-[36px] w-full max-w-sm p-5 sm:p-6 max-h-[90vh] overflow-y-auto shadow-2xl border border-white/70 transform scale-95 transition-transform duration-300" id="android-modal-content">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shadow-inner">
+                        <i class="fab fa-android"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-black text-slate-800 leading-tight" data-i18n="androidInstallModalTitle">Aplikasi Android BundaCare</h2>
+                        <p class="text-[10px] text-emerald-600 font-bold" data-i18n="androidAppBadge">Aplikasi Android Resmi</p>
+                    </div>
+                </div>
+                <button onclick="closeAndroidModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition active:scale-95">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="space-y-3.5 text-slate-700">
+                <!-- Status Box -->
+                <div id="android-status-box" class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-start gap-3">
+                    <i class="fas fa-mobile-screen text-emerald-500 text-lg mt-0.5 shrink-0"></i>
+                    <div class="text-xs">
+                        <p class="font-bold text-emerald-900" id="android-install-status-text">Siap Dipasang di Smartphone Android</p>
+                        <p class="text-[10px] text-emerald-700 mt-0.5 leading-relaxed" data-i18n="androidInstallModalDesc">Gunakan BundaCare layaknya aplikasi Android bawaan di smartphone Bunda.</p>
+                    </div>
+                </div>
+
+                <!-- 1-Click Install Button -->
+                <div id="android-direct-install-section" class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                    <p class="text-[11px] font-bold text-slate-800 mb-1" data-i18n="androidDirectInstallTitle">Pasang Langsung ke HP (1-Klik)</p>
+                    <p class="text-[10px] text-slate-500 leading-relaxed mb-3" data-i18n="androidDirectInstallDesc">Instal instan ke Home Screen & App Drawer tanpa perlu download besar dari Play Store.</p>
+                    <button onclick="installAndroidApp()" id="btn-modal-install-action" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 px-4 rounded-xl font-bold text-xs shadow-md shadow-emerald-200 hover:shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-download"></i> <span data-i18n="androidDirectInstallBtn">Pasang Aplikasi Sekarang</span>
+                    </button>
+                </div>
+
+                <!-- Step-by-step Chrome Guide -->
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-2">
+                    <p class="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fab fa-chrome text-amber-500"></i>
+                        <span data-i18n="androidManualGuideTitle">Cara Pasang di Browser Chrome HP Android:</span>
+                    </p>
+                    <div class="space-y-1.5 text-[10px] text-slate-600">
+                        <div class="flex items-start gap-2">
+                            <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0 mt-0.5 text-[9px]">1</span>
+                            <span data-i18n="androidStep1">Buka menu Chrome (ikon titik tiga ⋮ di kanan atas)</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0 mt-0.5 text-[9px]">2</span>
+                            <span data-i18n="androidStep2">Ketuk 'Tambahkan ke Layar Utama' atau 'Pasang Aplikasi'</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center shrink-0 mt-0.5 text-[9px]">3</span>
+                            <span data-i18n="androidStep3">Ikon BundaCare siap dibuka langsung dari menu HP Bunda</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Android Features Checklist -->
+                <div class="bg-pink-50/60 p-3.5 rounded-2xl border border-pink-100 space-y-2">
+                    <p class="text-[11px] font-bold text-pink-900" data-i18n="androidFeaturesTitle">Keunggulan Fitur Android:</p>
+                    <div class="grid grid-cols-1 gap-1.5 text-[10px] text-pink-800">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-emerald-500"></i>
+                            <span data-i18n="androidFeat1">Bekerja 100% Offline tanpa kuota/sinyal saat kontrol di klinik</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-emerald-500"></i>
+                            <span data-i18n="androidFeat2">Getaran Haptic responsif di sensor ponsel Android</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-emerald-500"></i>
+                            <span data-i18n="androidFeat3">Layar penuh (fullscreen) tanpa address bar browser</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check-circle text-emerald-500"></i>
+                            <span data-i18n="androidFeat4">Pengingat alarm minum vitamin & jadwal check-up</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export APK Info -->
+                <div class="bg-blue-50/70 p-3 rounded-2xl border border-blue-100 text-[10px] text-blue-800">
+                    <p class="font-bold flex items-center gap-1.5 text-blue-900 mb-0.5">
+                        <i class="fas fa-box-open text-blue-600"></i>
+                        <span data-i18n="androidExportApkTitle">Butuh File Installer APK (.apk)?</span>
+                    </p>
+                    <p class="leading-relaxed" data-i18n="androidExportApkDesc">BundaCare dapat dikemas menjadi file APK mandiri (Trusted Web Activity) menggunakan PWABuilder / Google Bubblewrap.</p>
+                </div>
+
+                <!-- Close Button -->
+                <button onclick="closeAndroidModal()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition">
+                    <span data-i18n="androidCloseBtn">Tutup</span>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- AI Chat Modal -->
@@ -1760,7 +2006,34 @@ detailedWeeks.en.advices = ["","","","","Start taking your folic acid routinely 
                 smartAfterTermWarn: "Tanggal ini sudah melewati 42 minggu kehamilan (masa pasca melahirkan).",
                 smartDaysPassed: "{d} hari yang lalu",
                 smartDaysAhead: "{d} hari lagi ke depan",
-                smartDaysToday: "Hari ini!"
+                smartDaysToday: "Hari ini!",
+
+                // Android App Keys
+                androidAppBadge: "Aplikasi Android",
+                androidInstallTitle: "Pasang Aplikasi Android",
+                androidInstallSubtitle: "Akses cepat di layar HP, hemat kuota & aktif offline",
+                androidInstallBtn: "Pasang",
+                androidInstallModalTitle: "Aplikasi Android BundaCare",
+                androidInstallModalDesc: "Gunakan BundaCare layaknya aplikasi Android bawaan di smartphone Bunda.",
+                androidDirectInstallTitle: "Pasang Langsung ke HP (1-Klik)",
+                androidDirectInstallDesc: "Instal instan ke Home Screen & App Drawer tanpa perlu download besar dari Play Store.",
+                androidDirectInstallBtn: "Pasang Aplikasi Sekarang",
+                androidManualGuideTitle: "Cara Pasang di Browser Chrome HP Android:",
+                androidStep1: "Buka menu Chrome (ikon titik tiga ⋮ di kanan atas)",
+                androidStep2: "Ketuk 'Tambahkan ke Layar Utama' atau 'Pasang Aplikasi'",
+                androidStep3: "Ikon BundaCare siap dibuka langsung dari menu HP Bunda",
+                androidFeaturesTitle: "Keunggulan Fitur Android:",
+                androidFeat1: "Bekerja 100% Offline tanpa kuota/sinyal saat kontrol di klinik",
+                androidFeat2: "Getaran Haptic responsif di sensor ponsel Android",
+                androidFeat3: "Layar penuh (fullscreen) tanpa address bar browser",
+                androidFeat4: "Pengingat alarm minum vitamin & jadwal check-up",
+                androidExportApkTitle: "Butuh File Installer APK (.apk)?",
+                androidExportApkDesc: "BundaCare dapat dikemas menjadi file APK mandiri (Trusted Web Activity) menggunakan PWABuilder / Google Bubblewrap.",
+                androidCloseBtn: "Tutup",
+                androidModeTogglePhone: "Mode HP",
+                androidModeToggleFull: "Layar Penuh",
+                androidOfflineBanner: "Mode Offline Android Aktif — BundaCare tetap berfungsi dengan data lokal.",
+                androidOnlineToast: "Koneksi internet kembali terhubung."
             },
             en: {
                 headerSubtitle: "care made easy.",
@@ -2009,7 +2282,34 @@ detailedWeeks.en.advices = ["","","","","Start taking your folic acid routinely 
                 smartAfterTermWarn: "This date is beyond 42 weeks of pregnancy (postpartum period).",
                 smartDaysPassed: "{d} days ago",
                 smartDaysAhead: "in {d} days",
-                smartDaysToday: "Today!"
+                smartDaysToday: "Today!",
+
+                // Android App Keys
+                androidAppBadge: "Android App",
+                androidInstallTitle: "Install Android App",
+                androidInstallSubtitle: "Fast access on your phone, offline ready & data saving",
+                androidInstallBtn: "Install",
+                androidInstallModalTitle: "BundaCare Android App",
+                androidInstallModalDesc: "Enjoy a native Android app experience directly on your smartphone.",
+                androidDirectInstallTitle: "Direct Install (1-Click)",
+                androidDirectInstallDesc: "Instant install to your Home Screen & App Drawer without large Play Store downloads.",
+                androidDirectInstallBtn: "Install App Now",
+                androidManualGuideTitle: "How to Install in Chrome for Android:",
+                androidStep1: "Open Chrome menu (three dots ⋮ at the top right)",
+                androidStep2: "Tap 'Add to Home screen' or 'Install App'",
+                androidStep3: "BundaCare icon will be added to your Android phone menu",
+                androidFeaturesTitle: "Android Experience Features:",
+                androidFeat1: "100% Offline capability during prenatal visits",
+                androidFeat2: "Responsive Haptic feedback on phone interactions",
+                androidFeat3: "Full-screen experience without browser address bars",
+                androidFeat4: "Timely vitamin & check-up appointment alarms",
+                androidExportApkTitle: "Need an APK Installer File (.apk)?",
+                androidExportApkDesc: "BundaCare can be bundled as an APK (Trusted Web Activity) via PWABuilder or Google Bubblewrap.",
+                androidCloseBtn: "Close",
+                androidModeTogglePhone: "Phone Mode",
+                androidModeToggleFull: "Full View",
+                androidOfflineBanner: "Android Offline Mode Active — BundaCare continues functioning with saved data.",
+                androidOnlineToast: "Internet connection restored."
             }
         };
 
@@ -2460,9 +2760,242 @@ detailedWeeks.en.advices = ["","","","","Start taking your folic acid routinely 
             }
         }
 
+        // --- ANDROID PWA & MOBILE ENGINE ---
+        let deferredAndroidPrompt = null;
+        let isAndroidAppInstalled = false;
+
+        function androidHaptic(type = 'light') {
+            if ('vibrate' in navigator) {
+                try {
+                    if (type === 'light') navigator.vibrate(14);
+                    else if (type === 'medium') navigator.vibrate(28);
+                    else if (type === 'success') navigator.vibrate([16, 30, 24]);
+                    else if (type === 'warning') navigator.vibrate([30, 45, 30]);
+                } catch (e) {
+                    // Ignore if vibration is restricted
+                }
+            }
+        }
+
+        function initAndroidApp() {
+            // Check standalone mode (already installed as Android WebAPK / PWA)
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                 window.navigator.standalone === true ||
+                                 document.referrer.includes('android-app://');
+            
+            if (isStandalone) {
+                isAndroidAppInstalled = true;
+                const banner = document.getElementById('android-install-banner');
+                if (banner) banner.style.display = 'none';
+                updateAndroidModalUI(true);
+            } else {
+                // Check if user previously dismissed banner
+                const isDismissed = localStorage.getItem('bunda_care_dismiss_android_banner') === '1';
+                const banner = document.getElementById('android-install-banner');
+                if (banner && isDismissed) {
+                    banner.style.display = 'none';
+                }
+            }
+
+            // Capture beforeinstallprompt for Android Chrome
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredAndroidPrompt = e;
+                const banner = document.getElementById('android-install-banner');
+                if (banner && !isStandalone && localStorage.getItem('bunda_care_dismiss_android_banner') !== '1') {
+                    banner.style.display = 'flex';
+                }
+                updateAndroidModalUI(false);
+            });
+
+            // Capture successful app installed event
+            window.addEventListener('appinstalled', () => {
+                deferredAndroidPrompt = null;
+                isAndroidAppInstalled = true;
+                const banner = document.getElementById('android-install-banner');
+                if (banner) banner.style.display = 'none';
+                updateAndroidModalUI(true);
+                showToast(currentLang === 'en' ? "BundaCare Android App installed successfully!" : "Aplikasi Android BundaCare berhasil dipasang di HP!");
+                androidHaptic('success');
+            });
+
+            // Setup real-time Android Status Bar Clock & Battery
+            startAndroidStatusBar();
+
+            // Setup Online / Offline listeners
+            setupAndroidNetworkMonitoring();
+
+            // Load saved frame mode preference
+            const savedFrameMode = localStorage.getItem('bunda_care_android_frame_mode');
+            const frame = document.getElementById('android-phone-frame');
+            const toggleBtnText = document.getElementById('text-frame-mode');
+            if (savedFrameMode === 'full') {
+                if (frame) frame.classList.remove('android-mode-device');
+                if (toggleBtnText) toggleBtnText.innerText = (i18n[currentLang] && i18n[currentLang].androidModeTogglePhone) || "Mode HP";
+            }
+        }
+
+        function startAndroidStatusBar() {
+            function updateClock() {
+                const clockEl = document.getElementById('android-status-clock');
+                if (clockEl) {
+                    const now = new Date();
+                    const hh = String(now.getHours()).padStart(2, '0');
+                    const mm = String(now.getMinutes()).padStart(2, '0');
+                    clockEl.innerText = `${hh}:${mm}`;
+                }
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            // Real Battery API
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(battery => {
+                    function updateBatteryUI() {
+                        const levelEl = document.getElementById('android-battery-level');
+                        const iconEl = document.getElementById('android-battery-icon');
+                        const pct = Math.round(battery.level * 100);
+                        if (levelEl) levelEl.innerText = `${pct}%`;
+                        if (iconEl) {
+                            if (battery.charging) {
+                                iconEl.className = "fas fa-battery-bolt text-xs text-emerald-600";
+                            } else if (pct > 75) {
+                                iconEl.className = "fas fa-battery-full text-xs text-slate-800";
+                            } else if (pct > 40) {
+                                iconEl.className = "fas fa-battery-three-quarters text-xs text-slate-800";
+                            } else if (pct > 15) {
+                                iconEl.className = "fas fa-battery-quarter text-xs text-amber-600";
+                            } else {
+                                iconEl.className = "fas fa-battery-empty text-xs text-red-600 animate-pulse";
+                            }
+                        }
+                    }
+                    updateBatteryUI();
+                    battery.addEventListener('levelchange', updateBatteryUI);
+                    battery.addEventListener('chargingchange', updateBatteryUI);
+                }).catch(() => {});
+            }
+        }
+
+        function setupAndroidNetworkMonitoring() {
+            const offlineBanner = document.getElementById('android-offline-banner');
+            
+            function handleOnline() {
+                if (offlineBanner) {
+                    offlineBanner.classList.add('hidden');
+                    offlineBanner.classList.remove('flex');
+                }
+                const msg = (i18n[currentLang] && i18n[currentLang].androidOnlineToast) || "Koneksi internet kembali terhubung.";
+                showToast(msg);
+                androidHaptic('light');
+            }
+
+            function handleOffline() {
+                if (offlineBanner) {
+                    offlineBanner.classList.remove('hidden');
+                    offlineBanner.classList.add('flex');
+                }
+                androidHaptic('warning');
+            }
+
+            window.addEventListener('online', handleOnline);
+            window.addEventListener('offline', handleOffline);
+
+            if (!navigator.onLine && offlineBanner) {
+                offlineBanner.classList.remove('hidden');
+                offlineBanner.classList.add('flex');
+            }
+        }
+
+        function toggleAndroidFrameMode() {
+            androidHaptic('light');
+            const frame = document.getElementById('android-phone-frame');
+            const toggleBtnText = document.getElementById('text-frame-mode');
+            if (!frame) return;
+
+            const isDevice = frame.classList.toggle('android-mode-device');
+            if (isDevice) {
+                localStorage.setItem('bunda_care_android_frame_mode', 'device');
+                if (toggleBtnText) toggleBtnText.innerText = (i18n[currentLang] && i18n[currentLang].androidModeToggleFull) || "Layar Penuh";
+            } else {
+                localStorage.setItem('bunda_care_android_frame_mode', 'full');
+                if (toggleBtnText) toggleBtnText.innerText = (i18n[currentLang] && i18n[currentLang].androidModeTogglePhone) || "Mode HP";
+            }
+        }
+
+        function dismissAndroidBanner() {
+            androidHaptic('light');
+            const banner = document.getElementById('android-install-banner');
+            if (banner) banner.style.display = 'none';
+            localStorage.setItem('bunda_care_dismiss_android_banner', '1');
+        }
+
+        async function installAndroidApp() {
+            androidHaptic('medium');
+            if (deferredAndroidPrompt) {
+                deferredAndroidPrompt.prompt();
+                const choiceResult = await deferredAndroidPrompt.userChoice;
+                if (choiceResult && choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the BundaCare Android app install prompt');
+                }
+                deferredAndroidPrompt = null;
+            } else {
+                // If not directly triggered, open the Android App Center Modal
+                openAndroidModal();
+            }
+        }
+
+        function openAndroidModal() {
+            androidHaptic('light');
+            const modal = document.getElementById('android-app-modal');
+            const content = document.getElementById('android-modal-content');
+            if (modal && content) {
+                updateAndroidModalUI(isAndroidAppInstalled);
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }
+        }
+
+        function closeAndroidModal() {
+            androidHaptic('light');
+            const modal = document.getElementById('android-app-modal');
+            const content = document.getElementById('android-modal-content');
+            if (modal && content) {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+        }
+
+        function updateAndroidModalUI(installed) {
+            const statusBox = document.getElementById('android-status-box');
+            const statusText = document.getElementById('android-install-status-text');
+            const installBtn = document.getElementById('btn-modal-install-action');
+
+            if (installed) {
+                if (statusBox) statusBox.className = "p-3.5 rounded-2xl bg-emerald-100 border border-emerald-300 flex items-start gap-3";
+                if (statusText) statusText.innerText = currentLang === 'en' ? "✅ BundaCare is Installed on Android" : "✅ BundaCare Sudah Terpasang di Ponsel Anda";
+                if (installBtn) {
+                    installBtn.innerHTML = `<i class="fas fa-check-circle"></i> <span>${currentLang === 'en' ? 'App Installed' : 'Aplikasi Sudah Terpasang'}</span>`;
+                    installBtn.classList.remove('from-emerald-600', 'to-teal-600');
+                    installBtn.classList.add('from-slate-500', 'to-slate-600');
+                }
+            } else {
+                if (statusBox) statusBox.className = "p-3.5 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-start gap-3";
+                if (statusText) statusText.innerText = currentLang === 'en' ? "Ready to Install on Android Device" : "Siap Dipasang di Smartphone Android";
+                if (installBtn) {
+                    installBtn.innerHTML = `<i class="fas fa-download"></i> <span>${(i18n[currentLang] && i18n[currentLang].androidDirectInstallBtn) || 'Pasang Aplikasi Sekarang'}</span>`;
+                    installBtn.classList.remove('from-slate-500', 'to-slate-600');
+                    installBtn.classList.add('from-emerald-600', 'to-teal-600');
+                }
+            }
+        }
+
         // Life Cycle
         window.onload = () => {
             initServiceWorker();
+            initAndroidApp();
             document.addEventListener('click', initAudio, { once: true });
             loadTheme();
             loadLanguage();
@@ -2492,18 +3025,21 @@ detailedWeeks.en.advices = ["","","","","Start taking your folic acid routinely 
         function switchTab(tabId) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            // Reset nav colors
+            // Reset nav colors & active pill
             document.querySelectorAll('.nav-btn').forEach(b => {
-                b.classList.remove('text-pink-600');
+                b.classList.remove('text-pink-600', 'bg-pink-100/70');
                 b.classList.add('text-gray-400');
             });
             
             // Show selected tab
-            document.getElementById(tabId).classList.add('active');
-            // Highlight selected nav
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) targetTab.classList.add('active');
+            // Highlight selected nav with Material 3 pill highlight
             const activeNav = document.getElementById('nav-' + tabId);
-            activeNav.classList.remove('text-gray-400');
-            activeNav.classList.add('text-pink-600');
+            if (activeNav) {
+                activeNav.classList.remove('text-gray-400');
+                activeNav.classList.add('text-pink-600', 'bg-pink-100/70');
+            }
         }
 
         function formatShortDate(date) {
@@ -2975,6 +3511,7 @@ detailedWeeks.en.advices = ["","","","","Start taking your folic acid routinely 
         }
 
         function calcSmartTargetDate() {
+            androidHaptic('light');
             const input = document.getElementById('smart-target-date-input');
             const hphtVal = document.getElementById('hpht-input').value;
             const dict = i18n[currentLang];
@@ -3101,6 +3638,7 @@ detailedWeeks.en.advices = ["","","","","Start taking your folic acid routinely 
         }
 
         function selectSmartWeek(week) {
+            androidHaptic('light');
             const hphtVal = document.getElementById('hpht-input').value;
             if (!hphtVal) return;
             const hpht = new Date(hphtVal);
@@ -3536,6 +4074,7 @@ detailedWeeks.en.advices = ["","","","","Start taking your folic acid routinely 
         }
 
         function addKick(btn) {
+            androidHaptic('medium');
             kickCount++;
             document.getElementById('kick-count').innerText = kickCount;
             
@@ -3556,6 +4095,7 @@ detailedWeeks.en.advices = ["","","","","Start taking your folic acid routinely 
             updateKickUI();
             
             if(kickCount === KICK_GOAL) {
+                androidHaptic('success');
                 showToast(i18n[currentLang].toastKicksGoal);
                 try {
                     playSound('chime');
